@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ali Assistant | Ultra Premium</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #0ea5e9;
+            --bg: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text-white: #f8fafc;
+            --text-dim: #94a3b8;
+            --accent-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+        
+        body { 
+            background-color: var(--bg);
+            background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 100%);
+            color: var(--text-white);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        #preloader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg); z-index: 9999;
+            display: flex; justify-content: center; align-items: center;
+        }
+        .loader {
+            width: 50px; height: 50px;
+            border: 5px solid var(--glass-border);
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .container { max-width: 900px; margin: 0 auto; padding: 40px 20px; opacity: 0; transition: opacity 1s ease; }
+        .loaded .container { opacity: 1; }
+
+        .header { text-align: center; margin-bottom: 40px; }
+        .header h1 { 
+            font-size: 3rem; font-weight: 800; 
+            background: var(--accent-gradient);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            letter-spacing: -2px;
+        }
+
+        .nav { 
+            display: flex; gap: 10px; justify-content: center; 
+            background: var(--card-bg); backdrop-filter: blur(15px);
+            padding: 8px; border-radius: 20px; border: 1px solid var(--glass-border);
+            margin-bottom: 30px; position: sticky; top: 20px; z-index: 100;
+        }
+        .nav-btn { 
+            padding: 12px 24px; border: none; background: none; 
+            border-radius: 15px; font-size: 14px; font-weight: 700; 
+            color: var(--text-dim); cursor: pointer; transition: 0.3s;
+        }
+        .nav-btn.active { background: var(--primary); color: white; box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3); }
+
+        .panel { display: none; }
+        .panel.active { display: block; animation: fadeIn 0.6s cubic-bezier(0.23, 1, 0.32, 1); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+        .card { 
+            background: var(--card-bg); backdrop-filter: blur(10px);
+            border-radius: 24px; padding: 30px; 
+            border: 1px solid var(--glass-border); margin-bottom: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+
+        input, select, textarea { 
+            width: 100%; padding: 15px; border-radius: 14px; 
+            border: 1px solid var(--glass-border); outline: none; transition: 0.3s;
+            background: rgba(15, 23, 42, 0.5); color: white; font-size: 15px;
+        }
+
+        .btn { 
+            padding: 15px 28px; border-radius: 14px; border: none; 
+            font-weight: 700; cursor: pointer; transition: 0.3s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-p { background: var(--primary); color: white; }
+        .btn-ai { background: var(--accent-gradient); color: white; width: 100%; margin-top: 15px; }
+
+        .list-item { 
+            background: rgba(255,255,255,0.03); padding: 18px; border-radius: 16px; 
+            display: flex; align-items: center; justify-content: space-between; 
+            margin-bottom: 12px; border: 1px solid var(--glass-border);
+        }
+
+        .chat-area { height: 350px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; padding-right: 10px; }
+        .msg { max-width: 80%; padding: 14px 20px; border-radius: 18px; font-size: 14px; line-height: 1.6; }
+        .msg.user { align-self: flex-end; background: var(--primary); color: white; border-bottom-right-radius: 4px; }
+        .msg.ai { align-self: flex-start; background: #334155; color: white; border-bottom-left-radius: 4px; }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+    <div id="preloader"><div class="loader"></div></div>
+
+    <div class="container">
+        <header class="header">
+            <h1>Ali Assistant</h1>
+            <p style="color: var(--text-dim)">Shaxsiy IT va Unumdorlik Markazi</p>
+        </header>
+
+        <nav class="nav">
+            <button class="nav-btn active" onclick="switchTab('todo', this)">Planlar</button>
+            <button class="nav-btn" onclick="switchTab('budget', this)">Byudjet</button>
+            <button class="nav-btn" onclick="switchTab('timer', this)">Fokus</button>
+            <button class="nav-btn" onclick="switchTab('note', this)">Eslatma</button>
+            <button class="nav-btn" onclick="switchTab('chat', this)">AI Chat</button>
+        </nav>
+
+        <section id="panel-todo" class="panel active">
+            <div class="card">
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="t-inp" placeholder="Bugungi muhim vazifa...">
+                    <button class="btn btn-p" onclick="addT()">Qo'shish</button>
+                </div>
+                <button class="btn btn-ai" onclick="runAI('todo')">✨ AI bilan tartiblash</button>
+                <div id="ai-res-todo"></div>
+            </div>
+            <div id="t-list"></div>
+        </section>
+
+        <section id="panel-budget" class="panel">
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px;">
+                <div class="card" style="text-align: center; padding: 15px;">
+                    <small>Kirim</small><div id="s-in" style="color: #10b981; font-size: 1.2rem; font-weight: 800;">0</div>
+                </div>
+                <div class="card" style="text-align: center; padding: 15px;">
+                    <small>Chiqim</small><div id="s-out" style="color: #f43f5e; font-size: 1.2rem; font-weight: 800;">0</div>
+                </div>
+                <div class="card" style="text-align: center; padding: 15px;">
+                    <small>Balans</small><div id="s-bal" style="font-size: 1.2rem; font-weight: 800;">0</div>
+                </div>
+            </div>
+            <div class="card">
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <input type="text" id="b-name" placeholder="Nom..." style="flex: 2">
+                    <input type="number" id="b-amt" placeholder="Summa..." style="flex: 1">
+                    <select id="b-type" style="flex: 1">
+                        <option value="in">Kirim</option>
+                        <option value="out">Chiqim</option>
+                    </select>
+                    <button class="btn btn-p" onclick="addB()" style="width: 100%;">Saqlash</button>
+                </div>
+            </div>
+            <div id="b-list"></div>
+        </section>
+
+        <section id="panel-timer" class="panel">
+            <div class="card" style="text-align: center;">
+                <div style="font-size: 5rem; font-weight: 800; margin-bottom: 20px;" id="timer-disp">25:00</div>
+                <div style="display: flex; gap: 15px; justify-content: center;">
+                    <button class="btn btn-p" onclick="timerCtrl('start')">START</button>
+                    <button class="btn" onclick="timerCtrl('pause')" style="background: #334155;">PAUSE</button>
+                    <button class="btn" onclick="timerCtrl('reset')" style="background: #1e293b;">RESET</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="panel-note" class="panel">
+            <div class="card">
+                <textarea id="n-inp" placeholder="Fikrlaringizni cheksiz yozing..." style="height: 150px; resize: none;"></textarea>
+                <button class="btn btn-p" onclick="addN()" style="margin-top: 15px; margin-left: auto;">Saqlash</button>
+            </div>
+            <div id="n-list" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;"></div>
+        </section>
+
+        <section id="panel-chat" class="panel">
+            <div class="card">
+                <div class="chat-area" id="chat-area">
+                    <div class="msg ai">Salom Ali! Bugun sizga qanday yordam bera olaman? Men internetsiz ham ishlayman!</div>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <input type="text" id="c-inp" placeholder="IT, IELTS yoki vaqt haqida so'rang..." onkeydown="if(event.key==='Enter')sendC()">
+                    <button class="btn btn-p" onclick="sendC()">↗</button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        let state = JSON.parse(localStorage.getItem('ali_data')) || { t: [], b: [], n: [], time: 1500 };
+        let timerIv = null;
+
+        window.onload = () => {
+            setTimeout(() => {
+                document.getElementById('preloader').style.display = 'none';
+                document.body.classList.add('loaded');
+                init();
+            }, 1000);
+        };
+
+        function saveData() { localStorage.setItem('ali_data', JSON.stringify(state)); }
+
+        function switchTab(id, el) {
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('panel-' + id).classList.add('active');
+            el.classList.add('active');
+        }
+
+        // --- AI CHAT (OFFLINE INTELLIGENCE) ---
+        function sendC() {
+            const inp = document.getElementById('c-inp');
+            if(!inp.value.trim()) return;
+            const area = document.getElementById('chat-area');
+            const v = inp.value.toLowerCase();
+            
+            area.innerHTML += `<div class="msg user">${inp.value}</div>`;
+            inp.value = '';
+            area.scrollTop = area.scrollHeight;
+
+            const tempId = "ai-" + Date.now();
+            area.innerHTML += `<div class="msg ai" id="${tempId}">O'ylayapman...</div>`;
+            area.scrollTop = area.scrollHeight;
+
+            setTimeout(() => {
+                let response = "Bu qiziq savol! IT sohasida bu bo'yicha izlanishlar ko'p. Aniqroq so'rasangiz, batafsil javob berishga harakat qilaman.";
+
+                if(v.includes("salom")) response = "Assalomu alaykum, Ali! Bugun rejalaringizni amalga oshirishda yordam berishga tayyorman.";
+                else if(v.includes("ielts")) response = "IELTS 7+ uchun har kuni Writing task 2 namunalarini o'qib, lug'at boyligingizni oshiring.";
+                else if(v.includes("it") || v.includes("dasturlash")) response = "Dasturlashda muvaffaqiyat kaliti — bu muntazamlik. Har kuni kamida 2 soat kod yozing.";
+                else if(v.includes("stp") || v.includes("dns")) response = "Tarmoq protokollari bo'yicha bilimingiz juda muhim. STP looplarni oldini oladi, DNS esa IP ni nomga o'zgartiradi.";
+                else if(v.includes("vaqt") || v.includes("unumdorlik")) response = "Vaqtni boshqarish uchun fokus taymerimizni 25 daqiqaga qo'yib, faqat bitta ishga diqqat qiling.";
+                else if(v.includes("rahmat")) response = "Arziydi, Ali! Doimiy rivojlanishdan to'xtamang.";
+
+                document.getElementById(tempId).innerText = response;
+                area.scrollTop = area.scrollHeight;
+            }, 800);
+        }
+
+        function runAI(type) {
+            const res = document.getElementById('ai-res-todo');
+            const count = state.t.length;
+            if(count === 0) {
+                res.innerHTML = `<div class="card" style="background:rgba(99,102,241,0.1); margin-top:10px;">✨ Hali vazifalar yo'q. Reja kiriting!</div>`;
+                return;
+            }
+            res.innerHTML = `<div class="card" style="background:rgba(99,102,241,0.1); margin-top:10px;">✨ <b>AI tahlili:</b> Sizda ${count} ta vazifa bor. Avval eng qiyinini tugating, dopamin darajangiz oshadi!</div>`;
+        }
+
+        // --- QOLGAN FUNKSIYALAR ---
+        function addT() {
+            const inp = document.getElementById('t-inp');
+            if(!inp.value) return;
+            state.t.push({ id: Date.now(), txt: inp.value, done: false });
+            inp.value = ''; saveData(); renderT();
+        }
+
+        function renderT() {
+            document.getElementById('t-list').innerHTML = state.t.map(i => `<div class="list-item"><span>${i.txt}</span><button onclick="del('t', ${i.id})" style="background:none; border:none; color:#f43f5e; cursor:pointer">✕</button></div>`).join('');
+        }
+
+        function addB() {
+            const name = document.getElementById('b-name').value;
+            const amt = parseFloat(document.getElementById('b-amt').value);
+            const type = document.getElementById('b-type').value;
+            if(!name || !amt) return;
+            state.b.push({ id: Date.now(), name, amt, type });
+            saveData(); renderB();
+        }
+
+        function renderB() {
+            let inc = 0, out = 0;
+            document.getElementById('b-list').innerHTML = state.b.map(x => {
+                if(x.type === 'in') inc += x.amt; else out += x.amt;
+                return `<div class="list-item"><span>${x.name}</span><b style="color:${x.type==='in'?'#10b981':'#f43f5e'}">${x.amt.toLocaleString()}</b></div>`;
+            }).join('');
+            document.getElementById('s-in').innerText = inc.toLocaleString();
+            document.getElementById('s-out').innerText = out.toLocaleString();
+            document.getElementById('s-bal').innerText = (inc - out).toLocaleString();
+        }
+
+        function addN() {
+            const val = document.getElementById('n-inp').value;
+            if(!val) return;
+            state.n.push({ id: Date.now(), txt: val, date: new Date().toLocaleDateString() });
+            document.getElementById('n-inp').value = ''; saveData(); renderN();
+        }
+
+        function renderN() {
+            document.getElementById('n-list').innerHTML = state.n.map(n => `<div class="card" style="padding:15px;"><small>${n.date}</small><p style="margin-top:5px;">${n.txt}</p></div>`).join('');
+        }
+
+        function timerCtrl(act) {
+            if(act === 'start') {
+                if(timerIv) return;
+                timerIv = setInterval(() => {
+                    state.time--;
+                    let m = Math.floor(state.time/60), s = state.time%60;
+                    document.getElementById('timer-disp').innerText = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+                    if(state.time <= 0) { clearInterval(timerIv); timerCtrl('reset'); }
+                }, 1000);
+            } else if(act === 'pause') { clearInterval(timerIv); timerIv = null; }
+            else { clearInterval(timerIv); timerIv = null; state.time = 1500; document.getElementById('timer-disp').innerText = "25:00"; }
+        }
+
+        function del(type, id) { state[type] = state[type].filter(x => x.id !== id); saveData(); init(); }
+        function init() { renderT(); renderB(); renderN(); }
+    </script>
+</body>
+</html>
